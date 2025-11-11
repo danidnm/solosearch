@@ -10,12 +10,25 @@ return [
     // and makes it available globally (which some models still rely on)
     Capsule::class => function (ContainerInterface $c): Capsule {
 
-        $settings = $c->get('settings')['db'];
+        $config = $c->get('SoloSearch\Core\Model\Config');
+        $driver = $config->get('DRIVER');
+        $host = $config->get('DB_HOST');
+        $database = $config->get('DB_DATABASE');
+        $user = $config->get('DB_USERNAME');
+        $pass = $config->get('DB_PASSWORD');
         $capsule = new Capsule;
-        $capsule->addConnection($settings);
-        $capsule->setAsGlobal(); // Necessary for some Eloquent features
+        $capsule->addConnection([
+            'driver'    => $driver,
+            'host'      => $host,
+            'database'  => $database,
+            'username'  => $user,
+            'password'  => $pass,
+            'charset'   => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix'    => '',
+        ]);
+        $capsule->setAsGlobal();
         $capsule->bootEloquent();
-
         return $capsule;
     },
 

@@ -20,13 +20,13 @@ class FeedsController extends \SoloSearch\Core\Controller\BaseController
         \SoloSearch\Core\Model\Config $config
     ) {
         parent::__construct($container);
-
         $this->config = $config;
     }
 
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $response->getBody()->write('GET');
+        $response->getBody()->write(json_encode($$this->users));
         return $response;
     }
 
