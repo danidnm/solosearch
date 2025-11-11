@@ -1,0 +1,4 @@
+/server-opensearch/private
+/server-opensearch/api/vendor
+/server-opensearch/api/logs
+.env
