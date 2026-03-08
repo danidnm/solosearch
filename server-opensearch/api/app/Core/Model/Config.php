@@ -27,6 +27,16 @@ class Config
     }
 
     /**
+     * Returns all configuration data
+     * 
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->config;
+    }
+
+    /**
      * Prepare paths to project, urls, and so on
      */
     private function preparePaths()
