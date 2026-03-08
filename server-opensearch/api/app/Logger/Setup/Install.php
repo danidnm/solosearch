@@ -29,7 +29,10 @@ class Install implements InstallerInterface
     public function install($version = '0.0.0')
     {
         $appPath = $this->config->get('app/path');
-        $logDir = $appPath . '/var/log';
+        $logPath = $this->config->get('app/logger/path') ?: 'var/log/app.log';
+        
+        // Get directory from log path
+        $logDir = $appPath . '/' . ltrim(dirname($logPath), '/');
 
         if (!is_dir($logDir)) {
             mkdir($logDir, 0777, true);

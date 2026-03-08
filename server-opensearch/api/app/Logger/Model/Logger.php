@@ -19,7 +19,8 @@ class Logger
     public function __construct(Config $config)
     {
         $appPath = $config->get('app/path');
-        $logFile = $appPath . '/var/log/app.log';
+        $logPath = $config->get('app/logger/path') ?: 'var/log/app.log';
+        $logFile = $appPath . '/' . ltrim($logPath, '/');
 
         $this->logger = new MonologLogger('solosearch');
         $this->logger->pushHandler(new StreamHandler($logFile, MonologLogger::DEBUG));

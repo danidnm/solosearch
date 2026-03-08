@@ -8,6 +8,9 @@ return [
             'database' => 'solosearchapi',
             'username' => 'solosearchapi',
             'password' => 'solosearchapi',
+        ],
+        'logger' => [
+            'path' => 'var/log/app.log'
         ]
     ]
 ];
