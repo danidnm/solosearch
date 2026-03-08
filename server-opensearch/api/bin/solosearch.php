@@ -28,7 +28,15 @@ $commandName = str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $comman
 $className = "SoloSearch\\{$group}\\Console\\{$commandName}";
 
 // Get command class and run
-$command = $container->get($className);
-$command->run();
+try {
+    $command = $container->get($className);
+    $command->run();
+} catch (\DI\NotFoundException $e) {
+    echo "Error: Command '{$argv[1]}' not found (Class: {$className}).\n";
+    exit(1);
+} catch (\Exception $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+    exit(1);
+}
 
 
