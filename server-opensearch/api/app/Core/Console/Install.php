@@ -69,7 +69,7 @@ class Install extends \SoloSearch\Core\Console\AbstractCommand
             }
         }
 
-
+        // 3. Process for every module
         foreach ($modules as $moduleName) {
             $this->processModule($moduleName);
         }
