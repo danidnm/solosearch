@@ -23,7 +23,18 @@ class Config
      */
     public function get($key)
     {
-        return isset($this->config[$key]) ? $this->config[$key] : '';
+        $parts = explode('/', $key);
+        $value = $this->config;
+
+        foreach ($parts as $part) {
+            if (is_array($value) && isset($value[$part])) {
+                $value = $value[$part];
+            } else {
+                return '';
+            }
+        }
+
+        return $value;
     }
 
     /**
@@ -49,6 +60,9 @@ class Config
      */
     private function loadConfig()
     {
-        $this->config = \Dotenv\Dotenv::createArrayBacked($this->config['app_path'])->load();
+        $envFile = $this->config['app_path'] . '/env.php';
+        if (file_exists($envFile)) {
+            $this->config = array_merge($this->config, require $envFile);
+        }
     }
 }

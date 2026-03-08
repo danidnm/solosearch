@@ -11,11 +11,11 @@ return [
     Capsule::class => function (ContainerInterface $c): Capsule {
 
         $config = $c->get('SoloSearch\Core\Model\Config');
-        $driver = $config->get('DRIVER');
-        $host = $config->get('DB_HOST');
-        $database = $config->get('DB_DATABASE');
-        $user = $config->get('DB_USERNAME');
-        $pass = $config->get('DB_PASSWORD');
+        $driver = $config->get('app/db/driver');
+        $host = $config->get('app/db/db_host');
+        $database = $config->get('app/db/db_database');
+        $user = $config->get('app/db/db_username');
+        $pass = $config->get('app/db/db_password');
         $capsule = new Capsule;
         $capsule->addConnection([
             'driver'    => $driver,
