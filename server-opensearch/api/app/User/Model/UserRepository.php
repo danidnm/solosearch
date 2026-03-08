@@ -5,8 +5,13 @@ namespace SoloSearch\User\Model;
 use SoloSearch\Core\Model\AbstractModel;
 use SoloSearch\User\Model\Resource\User as UserResource;
 
-class UserRepository extends AbstractModel
+class UserRepository
 {
+    /**
+     * @var array
+     */
+    protected array $entities = [];
+
     /**
      * @var UserFactory
      */
@@ -38,11 +43,9 @@ class UserRepository extends AbstractModel
      */
     public function get(int $id, bool $skipCache = false)
     {
-        $cacheKey = 'user_' . $id;
-
         // Check in-memory cache
-        if (!$skipCache && $this->hasData($cacheKey)) {
-            return $this->getData($cacheKey);
+        if (!$skipCache && isset($this->entities[$id])) {
+            return $this->entities[$id];
         }
 
         // Load from database
@@ -54,7 +57,7 @@ class UserRepository extends AbstractModel
         }
 
         // Store in-memory
-        $this->setData($cacheKey, $userModel);
+        $this->entities[$id] = $userModel;
 
         return $userModel;
     }
@@ -76,7 +79,7 @@ class UserRepository extends AbstractModel
         
         $id = $user->getId();
         if ($id) {
-            $this->setData('user_' . $id, $user);
+            $this->entities[$id] = $user;
         }
 
         return $this;
@@ -94,7 +97,7 @@ class UserRepository extends AbstractModel
         $this->userResource->delete($user);
         
         if ($id) {
-            $this->unsetData('user_' . $id);
+            unset($this->entities[$id]);
         }
 
         return $this;
