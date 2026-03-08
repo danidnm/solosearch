@@ -89,4 +89,12 @@ class Db
     {
         return $this->manager->getSchemaBuilder();
     }
+
+    /**
+     * Returns the database manager
+     */
+    public function getManager()
+    {
+        return $this->manager;
+    }
 }

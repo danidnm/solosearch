@@ -5,73 +5,54 @@ namespace SoloSearch\Core\Setup;
 class Install
 {
     /**
-     * Configuration values storage
+     * @var \SoloSearch\Core\Model\Db $db
      */
-    private $config;
+    private \SoloSearch\Core\Model\Db $db;
 
     /**
-     * @param \SoloSearch\Core\Model\Install
+     * @param \SoloSearch\Core\Model\Db $db
      */
     public function __construct(
+        \SoloSearch\Core\Model\Db $db
     ) {
-        $this->preparePaths();
-        $this->loadConfig();
+        $this->db = $db;
     }
 
     /**
-     * Returns configuration value by key
+     * Install core module
+     * 
+     * @param string $version
      */
-    public function get($key)
+    public function install($version = '0.0.0')
     {
-        $parts = explode('/', $key);
-        $value = $this->config;
-
-        foreach ($parts as $part) {
-            if (is_array($value) && isset($value[$part])) {
-                $value = $value[$part];
-            } else {
-                return '';
-            }
+        // If version is 0.0.0, it means the platform or module is being installed from scratch
+        if ($version === '0.0.0') {
+            $this->createModulesTable();
         }
-
-        return $value;
     }
 
     /**
-     * Prepare paths to project, urls, and so on
+     * Create modules table
      */
-    private function preparePaths()
+    private function createModulesTable()
     {
-        $this->config['app']['path'] = realpath(__DIR__ . '/../../');
-        $this->config['config_path'] = realpath(__DIR__ . '/../../../config/');
-    }
-
-    /**
-     * Load env config
-     */
-    private function loadConfig()
-    {
-        $appDir = $this->config['app']['path'];
-        $configDir = $this->config['config_path'];
-        unset($this->config['config_path']);
-
-        // 1. Scan and load modules config
-        if (is_dir($appDir)) {
-            $modules = scandir($appDir);
-            foreach ($modules as $module) {
-                if ($module === '.' || $module === '..') continue;
-
-                $moduleConfig = $appDir . '/' . $module . '/etc/config.php';
-                if (file_exists($moduleConfig)) {
-                    $this->config = array_replace_recursive($this->config, require $moduleConfig);
-                }
-            }
+        // Check if table exists before creating
+        if ($this->db->getSchema()->hasTable('modules')) {
+            return;
         }
 
-        // 2. Load main env config (priority)
-        $envFile = $configDir . '/env.php';
-        if (file_exists($envFile)) {
-            $this->config = array_replace_recursive($this->config, require $envFile);
-        }
+        $this->db->createTable('modules', [
+            'id'      => [
+                'type' => 'autoincrement'
+            ],
+            'module'  => [
+                'type' => 'string', 
+                'length' => 64
+            ],
+            'version' => [
+                'type' => 'string', 
+                'length' => 64
+            ]
+        ]);
     }
 }
