@@ -41,6 +41,17 @@ abstract class AbstractModel
     }
 
     /**
+     * Check if data exists
+     * 
+     * @param string $key
+     * @return bool
+     */
+    public function hasData($key)
+    {
+        return array_key_exists($key, $this->data);
+    }
+
+    /**
      * Magic methods for getters and setters
      */
     public function __call($name, $arguments)

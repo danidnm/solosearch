@@ -98,4 +98,55 @@ abstract class DbModelAbstract
         }
         return $this;
     }
+
+    /**
+     * Load model by field
+     * 
+     * @param AbstractModel $model
+     * @param string $field
+     * @param mixed $value
+     * @return $this
+     */
+    public function loadByField(AbstractModel $model, string $field, $value)
+    {
+        $result = $this->db->getManager()->table($this->tableName)
+            ->where($field, $value)
+            ->first();
+
+        if ($result) {
+            $model->setData((array)$result);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Save model using a unique field for identification
+     * 
+     * @param AbstractModel $model
+     * @param string $uniqueField
+     * @return $this
+     */
+    public function saveByField(AbstractModel $model, string $uniqueField)
+    {
+        $value = $model->getData($uniqueField);
+        $table = $this->db->getManager()->table($this->tableName);
+        
+        $exists = $table->where($uniqueField, $value)->exists();
+
+        // Filter data to only include database columns
+        $columns = $this->db->getSchema()->getColumnListing($this->tableName);
+        $dataToSave = array_intersect_key($model->getData(), array_flip($columns));
+
+        if ($exists) {
+            $table->where($uniqueField, $value)->update($dataToSave);
+        } else {
+            $newId = $table->insertGetId($dataToSave);
+            if ($this->idField === 'id' && !isset($dataToSave['id'])) {
+                $model->setData($this->idField, $newId);
+            }
+        }
+
+        return $this;
+    }
 }
