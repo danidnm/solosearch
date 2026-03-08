@@ -149,4 +149,15 @@ abstract class DbModelAbstract
 
         return $this;
     }
+
+    /**
+     * Truncate table
+     * 
+     * @return $this
+     */
+    public function truncate()
+    {
+        $this->db->getManager()->table($this->tableName)->truncate();
+        return $this;
+    }
 }

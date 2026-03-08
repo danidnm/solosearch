@@ -28,6 +28,7 @@ class Install implements InstallerInterface
         // If version is 0.0.0, it means the platform or module is being installed from scratch
         if ($version === '0.0.0') {
             $this->createModulesTable();
+            $this->createConfigTable();
         }
     }
 
@@ -53,6 +54,22 @@ class Install implements InstallerInterface
                 'type' => 'string', 
                 'length' => 64
             ]
+        ]);
+    }
+
+    /**
+     * Create config table
+     */
+    private function createConfigTable()
+    {
+        if ($this->db->getSchema()->hasTable('config')) {
+            return;
+        }
+
+        $this->db->createTable('config', [
+            'id'    => ['type' => 'autoincrement'],
+            'path'  => ['type' => 'string', 'length' => 255, 'unique' => true],
+            'value' => ['type' => 'text', 'nullable' => true]
         ]);
     }
 }

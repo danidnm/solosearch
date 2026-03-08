@@ -96,4 +96,16 @@ class CacheRepository
 
         return $this;
     }
+
+    /**
+     * Clear all cache data
+     * 
+     * @return $this
+     */
+    public function clear()
+    {
+        $this->entities = [];
+        $this->cacheResource->truncate();
+        return $this;
+    }
 }
