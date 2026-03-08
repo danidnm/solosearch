@@ -27,6 +27,20 @@ abstract class AbstractModel
     }
 
     /**
+     * Unset data
+     * 
+     * @param string $key
+     * @return $this
+     */
+    public function unsetData($key)
+    {
+        if (array_key_exists($key, $this->data)) {
+            unset($this->data[$key]);
+        }
+        return $this;
+    }
+
+    /**
      * Get data
      * 
      * @param string $key

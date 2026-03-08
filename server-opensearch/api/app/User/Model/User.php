@@ -19,38 +19,4 @@ class User extends AbstractModel
     {
         $this->resource = $resource;
     }
-
-    /**
-     * Load user by ID
-     * 
-     * @param mixed $id
-     * @return $this
-     */
-    public function load($id)
-    {
-        $this->resource->load($this, $id);
-        return $this;
-    }
-
-    /**
-     * Save user to database
-     * 
-     * @return $this
-     */
-    public function save()
-    {
-        $this->resource->save($this);
-        return $this;
-    }
-
-    /**
-     * Delete user from database
-     * 
-     * @return $this
-     */
-    public function delete()
-    {
-        $this->resource->delete($this);
-        return $this;
-    }
 }

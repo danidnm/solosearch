@@ -5,7 +5,7 @@ namespace SoloSearch\Cache\Model;
 use SoloSearch\Core\Model\AbstractModel;
 use SoloSearch\Cache\Model\Resource\Cache as CacheResource;
 
-class CacheManager extends AbstractModel
+class CacheRepository extends AbstractModel
 {
     /**
      * @var CacheFactory

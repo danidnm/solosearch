@@ -1,10 +1,10 @@
 <?php
 
-namespace SoloSearch\Cache\Model;
+namespace SoloSearch\User\Model;
 
 use DI\Container;
 
-class CacheFactory
+class UserFactory
 {
     /**
      * @var Container
@@ -20,12 +20,12 @@ class CacheFactory
     }
 
     /**
-     * Create new Cache model instance
+     * Create new User model instance
      * 
-     * @return Cache
+     * @return User
      */
     public function create()
     {
-        return $this->container->make(Cache::class);
+        return $this->container->make(User::class);
     }
 }
