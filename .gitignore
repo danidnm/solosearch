@@ -1,5 +1,6 @@
 /server-opensearch/private
 /server-opensearch/api/vendor
 /server-opensearch/api/logs
+/server-opensearch/api/var
 .vscode
 .env
