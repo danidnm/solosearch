@@ -26,14 +26,6 @@ class ShowConfig extends AbstractCommand
     public function run()
     {
         $data = $this->config->getData();
-        
-        echo "Current Configuration:\n";
-        echo "----------------------\n";
-        
-        foreach ($data as $key => $value) {
-            echo sprintf("%-20s: %s\n", $key, is_array($value) ? json_encode($value) : $value);
-        }
-        
-        echo "----------------------\n";
+        echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
     }
 }

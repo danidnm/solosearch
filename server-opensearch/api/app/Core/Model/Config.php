@@ -52,7 +52,8 @@ class Config
      */
     private function preparePaths()
     {
-        $this->config['app_path'] = realpath(__DIR__ . '/../../../config/');
+        $this->config['app']['path'] = realpath(__DIR__ . '/../../');
+        $this->config['config_path'] = realpath(__DIR__ . '/../../../config/');
     }
 
     /**
@@ -60,9 +61,11 @@ class Config
      */
     private function loadConfig()
     {
-        $envFile = $this->config['app_path'] . '/env.php';
+        $envFile = $this->config['config_path'] . '/env.php';
+        unset($this->config['config_path']);
+        
         if (file_exists($envFile)) {
-            $this->config = array_merge($this->config, require $envFile);
+            $this->config = array_merge_recursive($this->config, require $envFile);
         }
     }
 }

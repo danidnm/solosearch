@@ -12,10 +12,10 @@ return [
 
         $config = $c->get('SoloSearch\Core\Model\Config');
         $driver = $config->get('app/db/driver');
-        $host = $config->get('app/db/db_host');
-        $database = $config->get('app/db/db_database');
-        $user = $config->get('app/db/db_username');
-        $pass = $config->get('app/db/db_password');
+        $host = $config->get('app/db/host');
+        $database = $config->get('app/db/database');
+        $user = $config->get('app/db/username');
+        $pass = $config->get('app/db/password');
         $capsule = new Capsule;
         $capsule->addConnection([
             'driver'    => $driver,

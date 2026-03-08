@@ -4,10 +4,10 @@ return [
     'app' => [
         'db' => [
             'driver' => 'mysql',
-            'db_host' => 'localhost',
-            'db_database' => 'solosearchapi',
-            'db_username' => 'solosearchapi',
-            'db_password' => 'solosearchapi',
+            'host' => 'localhost',
+            'database' => 'solosearchapi',
+            'username' => 'solosearchapi',
+            'password' => 'solosearchapi',
         ]
     ]
 ];
