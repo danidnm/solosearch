@@ -5,8 +5,13 @@ namespace SoloSearch\Cache\Model;
 use SoloSearch\Core\Model\AbstractModel;
 use SoloSearch\Cache\Model\Resource\Cache as CacheResource;
 
-class CacheRepository extends AbstractModel
+class CacheRepository
 {
+    /**
+     * @var array
+     */
+    protected array $entities = [];
+
     /**
      * @var CacheFactory
      */
@@ -39,8 +44,8 @@ class CacheRepository extends AbstractModel
     public function get(string $key, bool $skipCache = false)
     {
         // Check in-memory cache
-        if (!$skipCache && $this->hasData($key)) {
-            return $this->getData($key);
+        if (!$skipCache && isset($this->entities[$key])) {
+            return $this->entities[$key];
         }
 
         // Load from database
@@ -56,7 +61,7 @@ class CacheRepository extends AbstractModel
         try {
             $unserializedValue = unserialize($value);
             // Store in-memory
-            $this->setData($key, $unserializedValue);
+            $this->entities[$key] = $unserializedValue;
             return $unserializedValue;
         } catch (\Exception $e) {
             return null;
@@ -73,7 +78,7 @@ class CacheRepository extends AbstractModel
     public function set(string $key, $value)
     {
         // Update in-memory
-        $this->setData($key, $value);
+        $this->entities[$key] = $value;
 
         // Persist to database
         $cacheModel = $this->cacheFactory->create();
