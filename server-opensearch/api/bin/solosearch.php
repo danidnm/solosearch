@@ -23,7 +23,8 @@ if (count($parts) !== 2) {
 }
 
 $group = ucfirst(strtolower($parts[0]));
-$commandName = ucfirst($parts[1]);
+$commandPart = $parts[1];
+$commandName = str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $commandPart)));
 $className = "SoloSearch\\{$group}\\Console\\{$commandName}";
 
 // Get command class and run
