@@ -2,9 +2,9 @@
 
 namespace SoloSearch\Cron\Console;
 
-use SoloSearch\Core\Console\AbstractCommand;
+use SoloSearch\Core\Console\CommandInterface;
 
-class Listing extends AbstractCommand
+class Listing implements CommandInterface
 {
     /**
      * Lists the cron jobs

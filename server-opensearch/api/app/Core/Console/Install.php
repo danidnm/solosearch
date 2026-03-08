@@ -2,7 +2,7 @@
 
 namespace SoloSearch\Core\Console;
 
-class Install extends \SoloSearch\Core\Console\AbstractCommand
+class Install implements CommandInterface
 {
     /**
      * @var \SoloSearch\Core\Model\Db $db
@@ -109,6 +109,13 @@ class Install extends \SoloSearch\Core\Console\AbstractCommand
         if (class_exists($installerClass)) {
             try {
                 $installer = $this->container->get($installerClass);
+                
+                // Check if installer implements InstallerInterface
+                if (!$installer instanceof \SoloSearch\Core\Setup\InstallerInterface) {
+                    echo "\n  [Warning] Installer class {$installerClass} does not implement InstallerInterface. Skipping.\n";
+                    return;
+                }
+
                 $installer->install($currentVersion);
             } catch (\Exception $e) {
                 echo "\n  [Error] Installer for {$moduleName}: " . $e->getMessage() . "\n";

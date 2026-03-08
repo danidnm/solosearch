@@ -4,7 +4,7 @@ namespace SoloSearch\Core\Console;
 
 use SoloSearch\Core\Model\Config;
 
-class ShowConfig extends AbstractCommand
+class ShowConfig implements CommandInterface
 {
     /**
      * @var Config

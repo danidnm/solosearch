@@ -4,7 +4,9 @@ namespace SoloSearch\User\Setup;
 
 use SoloSearch\Core\Model\Db;
 
-class Install
+use SoloSearch\Core\Setup\InstallerInterface;
+
+class Install implements InstallerInterface
 {
     /**
      * @var Db

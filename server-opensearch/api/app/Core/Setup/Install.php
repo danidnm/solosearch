@@ -2,7 +2,7 @@
 
 namespace SoloSearch\Core\Setup;
 
-class Install
+class Install implements InstallerInterface
 {
     /**
      * @var \SoloSearch\Core\Model\Db $db

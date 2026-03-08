@@ -4,7 +4,9 @@ namespace SoloSearch\Logger\Setup;
 
 use SoloSearch\Core\Model\Config;
 
-class Install
+use SoloSearch\Core\Setup\InstallerInterface;
+
+class Install implements InstallerInterface
 {
     /**
      * @var Config
@@ -24,7 +26,7 @@ class Install
      * 
      * @param string $currentVersion
      */
-    public function install($currentVersion)
+    public function install($version = '0.0.0')
     {
         $appPath = $this->config->get('app/path');
         $logDir = $appPath . '/var/log';
