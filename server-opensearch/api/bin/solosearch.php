@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 
 use DI\ContainerBuilder;
@@ -10,8 +11,8 @@ $containerBuilder->addDefinitions(__DIR__ . '/../config/container.php');
 $container = $containerBuilder->build();
 
 if ($argc < 2) {
-    echo "Usage: php bin/solosearch <command>\n";
-    echo "Example: php bin/solosearch core:install\n";
+    echo "Usage: ./bin/solosearch.php <command>\n";
+    echo "Example: ./bin/solosearch.php core:install\n";
     exit(1);
 }
 
