@@ -26,7 +26,7 @@ class FeedsController extends \SoloSearch\Core\Controller\BaseController
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $response->getBody()->write('GET');
-        $response->getBody()->write(json_encode($$this->users));
+        $response->getBody()->write(json_encode($this->users));
         return $response;
     }
 
