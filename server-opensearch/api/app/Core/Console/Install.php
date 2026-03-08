@@ -57,16 +57,18 @@ class Install extends \SoloSearch\Core\Console\AbstractCommand
 
         // 2. Discover modules
         $appPath = $this->config->get('app/path');
+        $modulesDir = $appPath . '/app';
         $modules = [];
-        if (is_dir($appPath)) {
-            $dirs = scandir($appPath);
+        if (is_dir($modulesDir)) {
+            $dirs = scandir($modulesDir);
             foreach ($dirs as $dir) {
                 if ($dir === '.' || $dir === '..') continue;
-                if (is_dir($appPath . '/' . $dir)) {
+                if (is_dir($modulesDir . '/' . $dir)) {
                     $modules[] = $dir;
                 }
             }
         }
+
 
         foreach ($modules as $moduleName) {
             $this->processModule($moduleName);

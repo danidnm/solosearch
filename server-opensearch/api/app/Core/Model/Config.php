@@ -52,9 +52,10 @@ class Config
      */
     private function preparePaths()
     {
-        $this->config['app']['path'] = realpath(__DIR__ . '/../../');
+        $this->config['app']['path'] = realpath(__DIR__ . '/../../../');
         $this->config['config_path'] = realpath(__DIR__ . '/../../../config/');
     }
+
 
     /**
      * Load env config
@@ -66,17 +67,19 @@ class Config
         unset($this->config['config_path']);
 
         // 1. Scan and load modules config
-        if (is_dir($appDir)) {
-            $modules = scandir($appDir);
+        $modulesDir = $appDir . '/app';
+        if (is_dir($modulesDir)) {
+            $modules = scandir($modulesDir);
             foreach ($modules as $module) {
                 if ($module === '.' || $module === '..') continue;
                 
-                $moduleConfig = $appDir . '/' . $module . '/etc/config.php';
+                $moduleConfig = $modulesDir . '/' . $module . '/etc/config.php';
                 if (file_exists($moduleConfig)) {
                     $this->config = array_replace_recursive($this->config, require $moduleConfig);
                 }
             }
         }
+
 
         // 2. Load main env config (priority)
         $envFile = $configDir . '/env.php';
