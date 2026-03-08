@@ -2,7 +2,7 @@
 
 return [
     'modules' => [
-        'feeds' => [
+        'feed' => [
             'version' => '0.0.1'
         ]
     ]

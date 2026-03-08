@@ -1,11 +1,11 @@
 <?php
 
-namespace SoloSearch\Feeds\Controller;
+namespace SoloSearch\Feed\Controller\V1;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class FeedsController extends \SoloSearch\Core\Controller\BaseController
+class FeedController extends \SoloSearch\Core\Controller\BaseController
 {
     /**
      * @var \SoloSearch\Core\Model\Config
@@ -13,7 +13,8 @@ class FeedsController extends \SoloSearch\Core\Controller\BaseController
     private \SoloSearch\Core\Model\Config $config;
 
     /**
-     * @var \Psr\Container\ContainerInterface
+     * @param \Psr\Container\ContainerInterface $container
+     * @param \SoloSearch\Core\Model\Config $config
      */
     public function __construct(
         \Psr\Container\ContainerInterface $container,
@@ -26,14 +27,22 @@ class FeedsController extends \SoloSearch\Core\Controller\BaseController
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $response->getBody()->write('GET');
-        $response->getBody()->write(json_encode($this->users));
         return $response;
     }
 
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $response->getBody()->write("POST");
-        return $response;
+        $data = $request->getParsedBody();
+        $channel = $data['channel'] ?? 'default';
+        
+        $result = [
+            'status' => 'success',
+            'message' => 'Feed updated',
+            'channel' => $channel
+        ];
+
+        $response->getBody()->write(json_encode($result));
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public function put(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
