@@ -10,5 +10,13 @@
         "psr-4": {
             "SoloSearch\\": "app"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SoloSearch\\Tests\\": "tests"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.5"
     }
 }
