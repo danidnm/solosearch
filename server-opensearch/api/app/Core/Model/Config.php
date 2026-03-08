@@ -61,11 +61,27 @@ class Config
      */
     private function loadConfig()
     {
-        $envFile = $this->config['config_path'] . '/env.php';
+        $appDir = $this->config['app']['path'];
+        $configDir = $this->config['config_path'];
         unset($this->config['config_path']);
-        
+
+        // 1. Scan and load modules config
+        if (is_dir($appDir)) {
+            $modules = scandir($appDir);
+            foreach ($modules as $module) {
+                if ($module === '.' || $module === '..') continue;
+                
+                $moduleConfig = $appDir . '/' . $module . '/etc/config.php';
+                if (file_exists($moduleConfig)) {
+                    $this->config = array_replace_recursive($this->config, require $moduleConfig);
+                }
+            }
+        }
+
+        // 2. Load main env config (priority)
+        $envFile = $configDir . '/env.php';
         if (file_exists($envFile)) {
-            $this->config = array_merge_recursive($this->config, require $envFile);
+            $this->config = array_replace_recursive($this->config, require $envFile);
         }
     }
 }
