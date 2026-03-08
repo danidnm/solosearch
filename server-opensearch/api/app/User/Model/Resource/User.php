@@ -2,9 +2,9 @@
 
 namespace SoloSearch\User\Model\Resource;
 
-use SoloSearch\Core\Model\Resource\DbModel;
+use SoloSearch\Core\Model\Resource\DbModelAbstract;
 
-class User extends DbModel
+class User extends DbModelAbstract
 {
     /**
      * Initialize resource

@@ -5,7 +5,7 @@ namespace SoloSearch\Core\Model\Resource;
 use SoloSearch\Core\Model\Db;
 use SoloSearch\Core\Model\AbstractModel;
 
-abstract class DbModel
+abstract class DbModelAbstract
 {
     /**
      * @var Db
