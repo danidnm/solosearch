@@ -28,6 +28,9 @@ class Install implements InstallerInterface
         // If version is 0.0.0, it means the platform or module is being installed from scratch
         if ($version === '0.0.0') {
             $this->createModulesTable();
+        }
+
+        if (version_compare($version, '0.0.2', '<')) {
             $this->createConfigTable();
         }
     }

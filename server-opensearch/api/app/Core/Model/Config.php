@@ -17,6 +17,11 @@ class Config
     private $container;
 
     /**
+     * @var string
+     */
+    private $configPath;
+
+    /**
      * @var bool
      */
     private $isExtendedLoaded = false;
@@ -29,7 +34,10 @@ class Config
     /**
      * @param ContainerInterface|null $container
      */
-    public function __construct(ContainerInterface $container = null) {
+    /**
+     * @param ContainerInterface|null $container
+     */
+    public function __construct(?ContainerInterface $container = null) {
         $this->container = $container;
         $this->preparePaths();
         $this->loadBootstrapConfig();
@@ -78,7 +86,7 @@ class Config
     private function preparePaths()
     {
         $this->config['app']['path'] = realpath(__DIR__ . '/../../../');
-        $this->config['config_path'] = realpath(__DIR__ . '/../../../config/');
+        $this->configPath = realpath(__DIR__ . '/../../../config/');
     }
 
     /**
@@ -86,8 +94,7 @@ class Config
      */
     private function loadBootstrapConfig()
     {
-        $configDir = $this->config['config_path'];
-        $envFile = $configDir . '/env.php';
+        $envFile = $this->configPath . '/env.php';
         if (file_exists($envFile)) {
             $this->config = array_replace_recursive($this->config, require $envFile);
         }
@@ -102,8 +109,7 @@ class Config
         $this->isExtendedLoaded = true;
 
         $appDir = $this->config['app']['path'];
-        $configDir = $this->config['config_path'] ?? null;
-        unset($this->config['config_path']);
+        $configDir = $this->configPath;
 
         // 1. Check Cache first
         if ($this->loadFromCache()) {
