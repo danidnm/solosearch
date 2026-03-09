@@ -2,7 +2,8 @@
 
 namespace SoloSearch\Core\Model;
 
-use Psr\Container\ContainerInterface;
+use Illuminate\Database\DatabaseManager;
+use SoloSearch\Cache\Model\CacheRepository;
 
 class Config
 {
@@ -12,9 +13,19 @@ class Config
     private $config = [];
 
     /**
-     * @var ContainerInterface
+     * @var BootstrapConfig
      */
-    private $container;
+    private $bootstrapConfig;
+
+    /**
+     * @var CacheRepository
+     */
+    private $cache;
+
+    /**
+     * @var DatabaseManager
+     */
+    private $dbManager;
 
     /**
      * @var string
@@ -32,13 +43,18 @@ class Config
     private $isCacheApplied = false;
 
     /**
-     * @param ContainerInterface|null $container
+     * @param BootstrapConfig $bootstrapConfig
+     * @param CacheRepository $cache
+     * @param DatabaseManager $dbManager
      */
-    /**
-     * @param ContainerInterface|null $container
-     */
-    public function __construct(?ContainerInterface $container = null) {
-        $this->container = $container;
+    public function __construct(
+        BootstrapConfig $bootstrapConfig,
+        CacheRepository $cache,
+        DatabaseManager $dbManager
+    ) {
+        $this->bootstrapConfig = $bootstrapConfig;
+        $this->cache = $cache;
+        $this->dbManager = $dbManager;
         $this->preparePaths();
         $this->loadBootstrapConfig();
     }
@@ -49,7 +65,8 @@ class Config
     public function get($key)
     {
         // If not a DB connection key and extended config not loaded, load it
-        if (!$this->isExtendedLoaded && strpos($key, 'app/db/') !== 0) {
+        // We exclude app/db/ because that's what's used for bootstrapping DB
+        if (!$this->isExtendedLoaded) {
             $this->loadExtendedConfig();
         }
 
@@ -94,10 +111,7 @@ class Config
      */
     private function loadBootstrapConfig()
     {
-        $envFile = $this->configPath . '/env.php';
-        if (file_exists($envFile)) {
-            $this->config = array_replace_recursive($this->config, require $envFile);
-        }
+        $this->config = array_replace_recursive($this->config, $this->bootstrapConfig->getData());
     }
 
     /**
@@ -109,14 +123,13 @@ class Config
         $this->isExtendedLoaded = true;
 
         $appDir = $this->config['app']['path'];
-        $configDir = $this->configPath;
 
-        // 1. Check Cache first
+        // Check Cache first
         if ($this->loadFromCache()) {
             return;
         }
 
-        // 2. Scan and load modules config
+        // Scan and load modules config
         $modulesDir = $appDir . '/app';
         if (is_dir($modulesDir)) {
             $modules = scandir($modulesDir);
@@ -130,13 +143,13 @@ class Config
             }
         }
 
-        // 3. Load from Database
+        // Load from Database
         $this->loadFromDatabase();
 
-        // 4. Final override with env.php (highest priority)
+        // Final override with bootstrap config (highest priority)
         $this->loadBootstrapConfig();
 
-        // 5. Save to Cache
+        // Save to Cache
         $this->saveToCache();
     }
 
@@ -147,12 +160,8 @@ class Config
      */
     private function loadFromCache()
     {
-        if (!$this->container) return false;
-
         try {
-            /** @var \SoloSearch\Cache\Model\CacheRepository $cache */
-            $cache = $this->container->get('SoloSearch\Cache\Model\CacheRepository');
-            $cachedConfig = $cache->get('app_config');
+            $cachedConfig = $this->cache->get('app_config');
             if ($cachedConfig && is_array($cachedConfig)) {
                 $this->config = $cachedConfig;
                 $this->isCacheApplied = true;
@@ -170,12 +179,10 @@ class Config
      */
     private function saveToCache()
     {
-        if (!$this->container || $this->isCacheApplied) return;
+        if ($this->isCacheApplied) return;
 
         try {
-            /** @var \SoloSearch\Cache\Model\CacheRepository $cache */
-            $cache = $this->container->get('SoloSearch\Cache\Model\CacheRepository');
-            $cache->set('app_config', $this->config);
+            $this->cache->set('app_config', $this->config);
         } catch (\Exception $e) {
             // Silently fail
         }
@@ -186,18 +193,13 @@ class Config
      */
     private function loadFromDatabase()
     {
-        if (!$this->container) return;
-
         try {
-            /** @var \SoloSearch\Core\Model\Db $db */
-            $db = $this->container->get('SoloSearch\Core\Model\Db');
-            
             // Check if table exists
-            if (!$db->getSchema()->hasTable('config')) {
+            if (!$this->dbManager->connection()->getSchemaBuilder()->hasTable('config')) {
                 return;
             }
 
-            $rows = $db->getManager()->table('config')->get();
+            $rows = $this->dbManager->table('config')->get();
             foreach ($rows as $row) {
                 $this->setConfigValueByPath($row->path, $row->value);
             }
