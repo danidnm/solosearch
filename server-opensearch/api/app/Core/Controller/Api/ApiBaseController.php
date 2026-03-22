@@ -8,10 +8,7 @@
  class ApiBaseController extends BaseController
  {
      protected function jsonResponse(ResponseInterface $response, array $data, int $status = 200): ResponseInterface
-     {
-         $response->getBody()->write(json_encode($data));
-         return $response
-             ->withHeader('Content-Type', 'application/json')
-             ->withStatus($status);
-     }
+    {
+        return $this->responseFactory->json($response, $data, $status);
+    }
  }

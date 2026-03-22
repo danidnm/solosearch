@@ -16,13 +16,15 @@ class FeedController extends ApiBaseController
 
     /**
      * @param \Psr\Container\ContainerInterface $container
+     * @param \SoloSearch\Core\Http\ResponseFactory $responseFactory
      * @param \SoloSearch\Core\Model\Config $config
      */
     public function __construct(
         \Psr\Container\ContainerInterface $container,
+        \SoloSearch\Core\Http\ResponseFactory $responseFactory,
         \SoloSearch\Core\Model\Config $config
     ) {
-        parent::__construct($container);
+        parent::__construct($container, $responseFactory);
         $this->config = $config;
     }
 

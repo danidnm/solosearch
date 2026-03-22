@@ -1,21 +1,20 @@
 <?php
 
 namespace SoloSearch\Core\Controller;
-
+ 
 use Psr\Container\ContainerInterface;
-
+use SoloSearch\Core\Http\ResponseFactory;
+ 
 class BaseController
 {
-    /**
-     * @var \Psr\Container\ContainerInterface
-     */
-    protected $container;
-
-    /**
-     * @var \Psr\Container\ContainerInterface
-     */
-    public function __construct(\Psr\Container\ContainerInterface $container
+    protected ContainerInterface $container;
+    protected ResponseFactory $responseFactory;
+ 
+    public function __construct(
+        ContainerInterface $container,
+        ResponseFactory $responseFactory
     ) {
         $this->container = $container;
+        $this->responseFactory = $responseFactory;
     }
 }

@@ -42,12 +42,4 @@ return [
     DatabaseManager::class => function (ContainerInterface $c): DatabaseManager {
         return $c->get(Capsule::class)->getDatabaseManager();
     },
-
-    // \SoloSearch\Core\Model\Config::class => function (ContainerInterface $c): \SoloSearch\Core\Model\Config {
-    //     return new \SoloSearch\Core\Model\Config(
-    //         $c->get(\SoloSearch\Core\Model\BootstrapConfig::class),
-    //         $c->get(\SoloSearch\Cache\Model\CacheRepository::class),
-    //         $c->get(DatabaseManager::class)
-    //     );
-    // },
 ];
