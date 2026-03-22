@@ -2,6 +2,7 @@
 
 return [
     'app' => [
+        'url' => 'api.st.com',
         'db' => [
             'driver' => 'mysql',
             'host' => 'localhost',

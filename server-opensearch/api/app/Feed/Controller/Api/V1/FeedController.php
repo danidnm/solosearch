@@ -1,6 +1,6 @@
 <?php
 
-namespace SoloSearch\Feed\Controller\V1;
+namespace SoloSearch\Feed\Controller\Api\V1;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
