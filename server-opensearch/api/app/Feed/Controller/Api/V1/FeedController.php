@@ -5,7 +5,9 @@ namespace SoloSearch\Feed\Controller\Api\V1;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class FeedController extends \SoloSearch\Core\Controller\BaseController
+use SoloSearch\Core\Controller\Api\ApiBaseController;
+ 
+class FeedController extends ApiBaseController
 {
     /**
      * @var \SoloSearch\Core\Model\Config
@@ -26,8 +28,7 @@ class FeedController extends \SoloSearch\Core\Controller\BaseController
 
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $response->getBody()->write('GET');
-        return $response;
+        return $this->jsonResponse($response, ['message' => 'GET']);
     }
 
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
@@ -41,19 +42,16 @@ class FeedController extends \SoloSearch\Core\Controller\BaseController
             'channel' => $channel
         ];
 
-        $response->getBody()->write(json_encode($result));
-        return $response->withHeader('Content-Type', 'application/json');
+        return $this->jsonResponse($response, $result);
     }
 
     public function put(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $response->getBody()->write("PUT");
-        return $response;
+        return $this->jsonResponse($response, ['message' => 'PUT']);
     }
 
     public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $response->getBody()->write("DELETE");
-        return $response;
+        return $this->jsonResponse($response, ['message' => 'DELETE']);
     }
 }
