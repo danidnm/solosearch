@@ -37,24 +37,44 @@ class Layout
 
         $handleConfig = $this->mergeLayoutHandles($layouts, $handle);
         
-        // Find root blocks (blocks at the top level of the handle)
+        /** @var BlockInterface[] $blocks */
+        $blocks = [];
         $rootBlocks = [];
+        
+        // 1. Instanciar todos los bloques definidos en este handle
         foreach ($handleConfig as $alias => $blockConfig) {
-            $block = $this->createBlock($alias, $blockConfig);
-            if ($block) {
+            $type = $blockConfig['type'] ?? \SoloSearch\Core\Block\BlockList::class;
+            try {
+                $block = $this->container->make($type, [
+                    'name' => $alias,
+                    'data' => $blockConfig
+                ]);
+                $blocks[$alias] = $block;
+            } catch (\Exception $e) {
+                error_log("Error creating block {$alias}: " . $e->getMessage());
+            }
+        }
+
+        // 2. Vincular los bloques a sus padres ('parent')
+        foreach ($handleConfig as $alias => $blockConfig) {
+            if (!isset($blocks[$alias])) continue;
+
+            $block = $blocks[$alias];
+            $parentAlias = $blockConfig['parent'] ?? null;
+            $position = (int)($blockConfig['position'] ?? 0);
+
+            if ($parentAlias && isset($blocks[$parentAlias])) {
+                $blocks[$parentAlias]->addChild($alias, $block, $position);
+            } elseif (!$parentAlias || $parentAlias === '') {
+                // Si no tiene padre, se considera un bloque raíz
                 $rootBlocks[] = $block;
             }
         }
 
+        // 3. Devolver la raíz
         if (count($rootBlocks) === 1) {
             return $rootBlocks[0];
         }
-
-        // If multiple roots, wrap them in a BlockList
-        $wrapper = $this->container->make(\SoloSearch\Core\Block\BlockList::class, [
-            'name' => 'root_wrapper',
-            'data' => []
-        ]);
         
         foreach ($rootBlocks as $block) {
             $wrapper->addChild($block->getName(), $block);
@@ -80,34 +100,7 @@ class Layout
         return $config;
     }
 
-    protected function createBlock(string $alias, array $config): ?BlockInterface
-    {
-        $type = $config['type'] ?? \SoloSearch\Core\Block\BlockList::class;
 
-        try {
-            /** @var BlockInterface $block */
-            $block = $this->container->make($type, [
-                'name' => $alias,
-                'data' => $config
-            ]);
-
-            if (isset($config['childs']) && is_array($config['childs'])) {
-                foreach ($config['childs'] as $childAlias => $childConfig) {
-                    $childBlock = $this->createBlock($childAlias, $childConfig);
-                    if ($childBlock) {
-                        $position = $childConfig['position'] ?? 0;
-                        $block->addChild($childAlias, $childBlock, (int)$position);
-                    }
-                }
-            }
-
-            return $block;
-        } catch (\Exception $e) {
-            // Log error or handle missing block types
-            error_log('Error creating block ' . $alias . ': ' . $e->getMessage());
-            return null;
-        }
-    }
 
     public function render(string $handle = 'default'): string
     {
