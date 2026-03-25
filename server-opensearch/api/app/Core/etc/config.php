@@ -11,37 +11,43 @@ return [
             'root' => [
                 'type' => \SoloSearch\Core\Block\Template::class,
                 'template' => 'Core/view/template/1column.twig',
-            ],
-            'head.styles' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'head.scripts' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'header' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'content' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'footer' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
+                'childs' => [
+                    'head.styles' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'head.scripts' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'header' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'content' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'footer' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                ]
+            ]
         ],
         '1sidebar' => [
             'root' => [
                 'type' => \SoloSearch\Core\Block\Template::class,
                 'template' => 'Core/view/template/1sidebar.twig',
-            ],
-            'head.styles' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'head.scripts' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'header' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'sidebar' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'content' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'footer' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
+                'childs' => [
+                    'head.styles' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'head.scripts' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'header' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'sidebar' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'content' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'footer' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                ]
+            ]
         ],
         '2sidebars' => [
             'root' => [
                 'type' => \SoloSearch\Core\Block\Template::class,
                 'template' => 'Core/view/template/2sidebars.twig',
-            ],
-            'head.styles' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'head.scripts' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'header' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'left' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'content' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'right' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
-            'footer' => ['type' => \SoloSearch\Core\Block\BlockList::class, 'parent' => 'root'],
+                'childs' => [
+                    'head.styles' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'head.scripts' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'header' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'left' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'content' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'right' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                    'footer' => ['type' => \SoloSearch\Core\Block\BlockList::class],
+                ]
+            ]
         ]
     ]
 ];
