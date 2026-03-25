@@ -20,6 +20,9 @@ $app = AppFactory::create();
 // Add Routing Middleware
 $app->addRoutingMiddleware();
 
+// Add Twig-View Middleware
+$app->add(\Slim\Views\TwigMiddleware::createFromContainer($app, \Slim\Views\Twig::class));
+
 // Add Error Middleware
 $displayErrorDetails = true; // Set to false in production
 $logErrors = true;

@@ -9,8 +9,10 @@
  
  class FeedController extends WebBaseController
  {
-     public function index(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+      public function index(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
      {
-         return $this->htmlResponse($response, '<h1>Feed Browser View</h1><p>Esta es la vista para el navegador.</p>');
+         return $this->render($response, 'Feed/view/feed.twig', [
+             'message' => '¡Hola desde el sistema de plantillas Twig!'
+         ]);
      }
  }

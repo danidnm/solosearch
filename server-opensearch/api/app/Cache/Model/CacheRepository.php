@@ -53,7 +53,7 @@ class CacheRepository
         $this->cacheResource->loadByField($cacheModel, 'cache_key', $key);
         
         // Extract the value
-        $value = $cacheModel->getData('cache_value');
+        $value = null; // $cacheModel->getData('cache_value');
         if ($value === null) {
             return null;
         }

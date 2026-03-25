@@ -42,4 +42,11 @@ return [
     DatabaseManager::class => function (ContainerInterface $c): DatabaseManager {
         return $c->get(Capsule::class)->getDatabaseManager();
     },
+
+    // Inject Twig template engine
+    \Slim\Views\Twig::class => function (ContainerInterface $c): \Slim\Views\Twig {
+        // Specify the path to your Twig templates
+        // We'll use the app directory as a base, so templates can be structured by module
+        return \Slim\Views\Twig::create(__DIR__ . '/../app', ['cache' => false]);
+    },
 ];

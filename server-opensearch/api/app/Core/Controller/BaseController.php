@@ -3,33 +3,32 @@
 namespace SoloSearch\Core\Controller;
 
 use SoloSearch\Core\Http\ResponseFactory;
-use SoloSearch\Core\Model\Layout;
+use Slim\Views\Twig;
 use Psr\Http\Message\ResponseInterface;
 
 class BaseController
 {
     protected ResponseFactory $responseFactory;
-    protected Layout $layout;
+    protected Twig $view;
 
     public function __construct(
         ResponseFactory $responseFactory,
-        Layout $layout
+        Twig $view
     ) {
         $this->responseFactory = $responseFactory;
-        $this->layout = $layout;
+        $this->view = $view;
     }
 
     /**
-     * Render layout handle to HTML response
+     * Render Twig template
      * 
      * @param ResponseInterface $response
-     * @param string $handle
-     * @param int $status
+     * @param string $template
+     * @param array $data
      * @return ResponseInterface
      */
-    protected function render(ResponseInterface $response, string $handle = 'default', int $status = 200): ResponseInterface
+    protected function render(ResponseInterface $response, string $template = 'default.twig', array $data = []): ResponseInterface
     {
-        $html = $this->layout->render($handle);
-        return $this->responseFactory->html($response, $html, $status);
+        return $this->view->render($response, $template, $data);
     }
 }
