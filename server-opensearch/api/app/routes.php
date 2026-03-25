@@ -6,13 +6,15 @@ return function (App $app) {
 
      // Discover module routes
      $container = $app->getContainer();
+
      /** @var \SoloSearch\Cache\Model\CacheRepository $cache */
      $cache = $container->get(\SoloSearch\Cache\Model\CacheRepository::class);
-     $cacheKey = 'app_module_route_files';
-     
+     $cacheKey = 'app_module_route_files';     
      $routeFiles = $cache->get($cacheKey);
  
+     // If cache is empty, discover module routes
      if ($routeFiles === null) {
+        
          $routeFiles = [];
          $modulesDir = __DIR__;
          if (is_dir($modulesDir)) {
@@ -22,6 +24,7 @@ return function (App $app) {
                      continue;
                  }
                  
+                 // Find routes
                  $routeFile = $modulesDir . '/' . $dir . '/etc/routes.php';
                  if (file_exists($routeFile)) {
                      $routeFiles[] = $routeFile;
@@ -31,7 +34,10 @@ return function (App $app) {
          $cache->set($cacheKey, $routeFiles);
      }
  
+     // Load routes
      foreach ($routeFiles as $file) {
-         (require $file)($app);
-     }
- };
+        if (file_exists($file)) {
+            (require $file)($app);
+        }
+    }
+};
