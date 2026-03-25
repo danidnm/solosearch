@@ -31,11 +31,24 @@ class Layout
     public function build(string $handle = 'default'): ?BlockInterface
     {
         $layouts = $this->config->get('layout');
-        if (!isset($layouts[$handle])) {
+        
+        $defaultConfig = [];
+        if ($handle !== 'default' && isset($layouts['default'])) {
+            $defaultConfig = $this->mergeLayoutHandles($layouts, 'default');
+        }
+
+        $handleConfig = [];
+        if (isset($layouts[$handle])) {
+            $handleConfig = $this->mergeLayoutHandles($layouts, $handle);
+        }
+
+        // Si no existe ni default ni el handle pedido, no hay nada que hacer
+        if (empty($defaultConfig) && empty($handleConfig)) {
             return null;
         }
 
-        $handleConfig = $this->mergeLayoutHandles($layouts, $handle);
+        // Fusionar: El handle específico sobreescribe/añade al default
+        $handleConfig = array_replace_recursive($defaultConfig, $handleConfig);
         
         // 1. Aplanar la configuración: convertir 'childs' anidados en referencias 'parent'
         $flatConfig = [];

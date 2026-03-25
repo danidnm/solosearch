@@ -7,8 +7,9 @@ return [
         ]
     ],
     'layout' => [
-        // 1. Modificamos GLOBALMENTE el handle 1sidebar para añadir nuestro widget referenciando 'sidebar' como parent
-        '1sidebar' => [
+        // 1. Modificamos GLOBALMENTE el handle 'default' para inyectar este widget en todos lados
+        // Si el layout final tiene un bloque llamado 'sidebar', este widget aparecerá allí.
+        'default' => [
             'feed.sidebar.widget' => [
                 'type' => \SoloSearch\Core\Block\Template::class,
                 'template' => 'Feed/view/sidebar_widget.twig',
