@@ -37,12 +37,42 @@ class Layout
 
         $handleConfig = $this->mergeLayoutHandles($layouts, $handle);
         
+        // 1. Aplanar la configuración: convertir 'childs' anidados en referencias 'parent'
+        $flatConfig = [];
+        $flatten = function(array $blocks, ?string $parentAlias = null) use (&$flatten, &$flatConfig) {
+            foreach ($blocks as $alias => $config) {
+                // Si fue declarado iterativamente dentro de 'childs', le forzamos el parent
+                if ($parentAlias !== null) {
+                    $config['parent'] = $parentAlias;
+                }
+                
+                $childs = [];
+                if (isset($config['childs']) && is_array($config['childs'])) {
+                    $childs = $config['childs'];
+                    unset($config['childs']);
+                }
+
+                // Si por alguna razón un módulo definió un bloque plano y luego otro módulo
+                // lo redefinió anidado, los fusionamos a favor del último
+                if (isset($flatConfig[$alias])) {
+                    $flatConfig[$alias] = array_replace_recursive($flatConfig[$alias], $config);
+                } else {
+                    $flatConfig[$alias] = $config;
+                }
+
+                if (!empty($childs)) {
+                    $flatten($childs, $alias);
+                }
+            }
+        };
+        $flatten($handleConfig);
+
         /** @var BlockInterface[] $blocks */
         $blocks = [];
         $rootBlocks = [];
         
-        // 1. Instanciar todos los bloques definidos en este handle
-        foreach ($handleConfig as $alias => $blockConfig) {
+        // 2. Instanciar todos los bloques del array plano
+        foreach ($flatConfig as $alias => $blockConfig) {
             $type = $blockConfig['type'] ?? \SoloSearch\Core\Block\BlockList::class;
             try {
                 $block = $this->container->make($type, [
@@ -55,8 +85,8 @@ class Layout
             }
         }
 
-        // 2. Vincular los bloques a sus padres ('parent')
-        foreach ($handleConfig as $alias => $blockConfig) {
+        // 3. Vincular los bloques a sus padres ('parent')
+        foreach ($flatConfig as $alias => $blockConfig) {
             if (!isset($blocks[$alias])) continue;
 
             $block = $blocks[$alias];
@@ -71,10 +101,16 @@ class Layout
             }
         }
 
-        // 3. Devolver la raíz
+        // 4. Devolver la raíz
         if (count($rootBlocks) === 1) {
             return $rootBlocks[0];
         }
+
+        // If multiple roots, wrap them in a BlockList
+        $wrapper = $this->container->make(\SoloSearch\Core\Block\BlockList::class, [
+            'name' => 'root_wrapper',
+            'data' => []
+        ]);
         
         foreach ($rootBlocks as $block) {
             $wrapper->addChild($block->getName(), $block);
