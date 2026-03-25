@@ -7,7 +7,12 @@
  use SoloSearch\Core\Http\ResponseFactory;
  use SoloSearch\Core\Model\Layout;
  
- class WebBaseController extends BaseController
+ /**
+ * Class WebBaseController
+ * Base controller for all web endpoints. It injects the Layout model
+ * so child controllers can simply call $this->render('handle_name').
+ */
+class WebBaseController extends BaseController
  {
      protected Layout $layout;
      

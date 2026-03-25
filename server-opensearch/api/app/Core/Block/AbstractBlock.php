@@ -4,6 +4,11 @@ namespace SoloSearch\Core\Block;
 
 use Psr\Container\ContainerInterface;
 
+/**
+ * Class AbstractBlock
+ * Provides the base functionality for blocks including child management,
+ * data storage, and sorting by position.
+ */
 abstract class AbstractBlock implements BlockInterface
 {
     protected string $name;

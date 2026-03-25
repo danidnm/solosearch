@@ -5,6 +5,11 @@ namespace SoloSearch\Core\Model;
 use DI\Container;
 use SoloSearch\Core\Block\BlockInterface;
 
+/**
+ * Class Layout
+ * Responsible for parsing the 'layout' configuration arrays and 
+ * instantiating the hierarchy of Block objects using the DI container.
+ */
 class Layout
 {
     /**
@@ -30,7 +35,7 @@ class Layout
             return null;
         }
 
-        $handleConfig = $layouts[$handle];
+        $handleConfig = $this->mergeLayoutHandles($layouts, $handle);
         
         // Find root blocks (blocks at the top level of the handle)
         $rootBlocks = [];
@@ -56,6 +61,23 @@ class Layout
         }
 
         return $wrapper;
+    }
+
+    /**
+     * Recursively merge layout handles using the 'update' key
+     */
+    protected function mergeLayoutHandles(array $layouts, string $handle): array
+    {
+        $config = $layouts[$handle] ?? [];
+        if (isset($config['update'])) {
+            $parentHandle = $config['update'];
+            unset($config['update']);
+            if (isset($layouts[$parentHandle])) {
+                $parentConfig = $this->mergeLayoutHandles($layouts, $parentHandle);
+                $config = array_replace_recursive($parentConfig, $config);
+            }
+        }
+        return $config;
     }
 
     protected function createBlock(string $alias, array $config): ?BlockInterface

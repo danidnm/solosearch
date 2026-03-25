@@ -5,6 +5,12 @@ namespace SoloSearch\Core\Block;
 use Psr\Container\ContainerInterface;
 use Slim\Views\Twig;
 
+/**
+ * Class Template
+ * A block that renders a specific Twig template. 
+ * Provides itself ($this) to the template via the `block` variable, 
+ * allowing the template to render its childs or access its data.
+ */
 class Template extends AbstractBlock
 {
     protected Twig $twig;
