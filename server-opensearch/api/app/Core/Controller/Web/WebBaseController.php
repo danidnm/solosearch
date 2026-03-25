@@ -5,31 +5,24 @@
  use Psr\Http\Message\ResponseInterface;
  use SoloSearch\Core\Controller\BaseController;
  use SoloSearch\Core\Http\ResponseFactory;
- use Slim\Views\Twig;
+ use SoloSearch\Core\Model\Layout;
  
  class WebBaseController extends BaseController
  {
-     protected Twig $view;
+     protected Layout $layout;
      
      public function __construct(
          ResponseFactory $responseFactory,
-         Twig $view
+         Layout $layout
      ) {
          parent::__construct($responseFactory);
-         $this->view = $view;
+         $this->layout = $layout;
      }
      
-     /**
-      * Render Twig template
-      * 
-      * @param ResponseInterface $response
-      * @param string $template
-      * @param array $data
-      * @return ResponseInterface
-      */
-     protected function render(ResponseInterface $response, string $template = 'default.twig', array $data = []): ResponseInterface
+     protected function render(ResponseInterface $response, string $handle = 'default', int $status = 200): ResponseInterface
      {
-         return $this->view->render($response, $template, $data);
+         $html = $this->layout->render($handle);
+         return $this->htmlResponse($response, $html, $status);
      }
      
      protected function htmlResponse(ResponseInterface $response, string $html, int $status = 200): ResponseInterface

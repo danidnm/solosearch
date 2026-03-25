@@ -11,8 +11,6 @@
  {
       public function index(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
      {
-         return $this->render($response, 'Feed/view/feed.twig', [
-             'message' => '¡Hola desde el sistema de plantillas Twig!'
-         ]);
+         return $this->render($response, 'feed_index');
      }
  }
