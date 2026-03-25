@@ -17,4 +17,13 @@ $app = AppFactory::create();
 // Routes
 (require __DIR__ . '/routes.php')($app);
 
+// Add Routing Middleware
+$app->addRoutingMiddleware();
+
+// Add Error Middleware
+$displayErrorDetails = true; // Set to false in production
+$logErrors = true;
+$logErrorDetails = true;
+$app->addErrorMiddleware($displayErrorDetails, $logErrors, $logErrorDetails);
+
 return $app;
