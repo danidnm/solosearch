@@ -10,7 +10,7 @@ return [
         '1column' => [
             'root' => [
                 'type' => \SoloSearch\Core\Block\Template::class,
-                'template' => 'Core/view/layout/1column.twig',
+                'template' => 'Core/view/template/1column.twig',
                 'childs' => [
                     'head.styles' => ['type' => \SoloSearch\Core\Block\BlockList::class],
                     'head.scripts' => ['type' => \SoloSearch\Core\Block\BlockList::class],
@@ -23,7 +23,7 @@ return [
         '1sidebar' => [
             'root' => [
                 'type' => \SoloSearch\Core\Block\Template::class,
-                'template' => 'Core/view/layout/1sidebar.twig',
+                'template' => 'Core/view/template/1sidebar.twig',
                 'childs' => [
                     'head.styles' => ['type' => \SoloSearch\Core\Block\BlockList::class],
                     'head.scripts' => ['type' => \SoloSearch\Core\Block\BlockList::class],
@@ -37,7 +37,7 @@ return [
         '2sidebars' => [
             'root' => [
                 'type' => \SoloSearch\Core\Block\Template::class,
-                'template' => 'Core/view/layout/2sidebars.twig',
+                'template' => 'Core/view/template/2sidebars.twig',
                 'childs' => [
                     'head.styles' => ['type' => \SoloSearch\Core\Block\BlockList::class],
                     'head.scripts' => ['type' => \SoloSearch\Core\Block\BlockList::class],

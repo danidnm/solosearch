@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ data.title|default("SoloSearch") }}</title>
+    {{ block.getChildHtml('head.styles')|raw }}
+    {{ block.getChildHtml('head.scripts')|raw }}
+</head>
+<body class="layout-1sidebar">
+    <header class="page-header">
+        {{ block.getChildHtml('header')|raw }}
+    </header>
+
+    <div class="columns-wrapper" style="display: flex;">
+        <aside class="col-sidebar" style="width: 25%;">
+            {{ block.getChildHtml('sidebar')|raw }}
+        </aside>
+
+        <main class="col-main" style="width: 75%;">
+            {{ block.getChildHtml('content')|raw }}
+        </main>
+    </div>
+
+    <footer class="page-footer">
+        {{ block.getChildHtml('footer')|raw }}
+    </footer>
+</body>
+</html>
