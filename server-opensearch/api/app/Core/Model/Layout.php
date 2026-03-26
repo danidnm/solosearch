@@ -28,6 +28,11 @@ class Layout
      */
     protected CacheRepository $cache;
 
+    /**
+     * @var ConfigReader
+     */
+    protected ConfigReader $configReader;
+
     /** @var array */
     protected array $handleConfig = [];
     
@@ -40,12 +45,14 @@ class Layout
      * @param Config $config The application configuration object holding layout definitions
      * @param Container $container The dependency injection container for instantiating blocks
      * @param CacheRepository $cache Repository for caching layout configurations
+     * @param ConfigReader $configReader Reader for merging layout configuration files
      */
-    public function __construct(Config $config, Container $container, CacheRepository $cache)
+    public function __construct(Config $config, Container $container, CacheRepository $cache, ConfigReader $configReader)
     {
         $this->config = $config;
         $this->container = $container;
         $this->cache = $cache;
+        $this->configReader = $configReader;
     }
 
     /**
@@ -103,33 +110,8 @@ class Layout
             // Silently ignore cache read errors
         }
 
-        $layouts = [];
         $appDir = $this->config->get('app/path') . '/app';
-
-        if (is_dir($appDir)) {
-            $modules = scandir($appDir);
-            foreach ($modules as $module) {
-                if ($module === '.' || $module === '..') continue;
-
-                $layoutDir = $appDir . '/' . $module . '/view/layout';
-                if (is_dir($layoutDir)) {
-                    $layoutFiles = scandir($layoutDir);
-                    foreach ($layoutFiles as $file) {
-                        if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-                            $handle = basename($file, '.php');
-                            $layoutConfig = require $layoutDir . '/' . $file;
-                            
-                            if (is_array($layoutConfig)) {
-                                if (!isset($layouts[$handle])) {
-                                    $layouts[$handle] = [];
-                                }
-                                $layouts[$handle] = array_replace_recursive($layouts[$handle], $layoutConfig);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        $layouts = $this->configReader->read($appDir, 'view/layout', true);
 
         try {
             $this->cache->set('layout_config', $layouts);

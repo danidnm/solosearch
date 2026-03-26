@@ -28,9 +28,9 @@ class Config
     private $dbManager;
 
     /**
-     * @var string
+     * @var ConfigReader
      */
-    private $configPath;
+    private $configReader;
 
     /**
      * @var bool
@@ -46,15 +46,18 @@ class Config
      * @param BootstrapConfig $bootstrapConfig
      * @param CacheRepository $cache
      * @param DatabaseManager $dbManager
+     * @param ConfigReader $configReader
      */
     public function __construct(
         BootstrapConfig $bootstrapConfig,
         CacheRepository $cache,
-        DatabaseManager $dbManager
+        DatabaseManager $dbManager,
+        ConfigReader $configReader
     ) {
         $this->bootstrapConfig = $bootstrapConfig;
         $this->cache = $cache;
         $this->dbManager = $dbManager;
+        $this->configReader = $configReader;
         $this->preparePaths();
         $this->loadBootstrapConfig();
     }
@@ -103,7 +106,6 @@ class Config
     private function preparePaths()
     {
         $this->config['app']['path'] = realpath(__DIR__ . '/../../../');
-        $this->configPath = realpath(__DIR__ . '/../../../config/');
     }
 
     /**
@@ -131,17 +133,9 @@ class Config
 
         // Scan and load modules config
         $modulesDir = $appDir . '/app';
-        if (is_dir($modulesDir)) {
-            $modules = scandir($modulesDir);
-            foreach ($modules as $module) {
-                if ($module === '.' || $module === '..') continue;
-                
-                $moduleConfig = $modulesDir . '/' . $module . '/etc/config.php';
-                if (file_exists($moduleConfig)) {
-                    $this->config = array_replace_recursive($this->config, require $moduleConfig);
-                }
-            }
-        }
+        
+        $moduleConfig = $this->configReader->read($modulesDir, 'etc/config.php', false);
+        $this->config = array_replace_recursive($this->config, $moduleConfig);
 
         // Load from Database
         $this->loadFromDatabase();
