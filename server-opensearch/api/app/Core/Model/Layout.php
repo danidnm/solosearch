@@ -110,8 +110,8 @@ class Layout
             // Silently ignore cache read errors
         }
 
-        $appDir = $this->config->get('app/path') . '/app';
-        $layouts = $this->configReader->read($appDir, 'view/layout', true);
+        $modulesDir = $this->config->get('app/modules_path');
+        $layouts = $this->configReader->read($modulesDir, 'view/layout', true);
 
         try {
             $this->cache->set('layout_config', $layouts);

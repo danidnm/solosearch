@@ -6,12 +6,6 @@ use Psr\Container\ContainerInterface;
 
 return [
 
-    // // This factory creates the Capsule, boots Eloquent,
-    // // and makes it available globally (which some models still rely on)
-    // \SoloSearch\Core\Model\BootstrapConfig::class => function (): \SoloSearch\Core\Model\BootstrapConfig {
-    //     return new \SoloSearch\Core\Model\BootstrapConfig();
-    // },
-
     // This factory creates the Capsule, boots Eloquent,
     // and makes it available globally (which some models still rely on)
     Capsule::class => function (ContainerInterface $c): Capsule {

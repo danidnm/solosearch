@@ -101,11 +101,28 @@ class Config
     }
 
     /**
+     * Set a config value (keep private)
+     */
+    private function set($path, $value)
+    {
+        $parts = explode('/', $path);
+        $temp = &$this->config;
+        foreach ($parts as $part) {
+            if (!isset($temp[$part]) || !is_array($temp[$part])) {
+                $temp[$part] = [];
+            }
+            $temp = &$temp[$part];
+        }
+        $temp = $value;
+    }
+
+    /**
      * Prepare paths to project, urls, and so on
      */
     private function preparePaths()
     {
         $this->config['app']['path'] = realpath(__DIR__ . '/../../../');
+        $this->config['app']['modules_path'] = realpath(__DIR__ . '/../../../app');
     }
 
     /**
@@ -117,6 +134,28 @@ class Config
     }
 
     /**
+     * Load config from config table
+     */
+    private function loadFromDatabase()
+    {
+        try {
+            // Check if table exists
+            if (!$this->dbManager->connection()->getSchemaBuilder()->hasTable('config')) {
+                return;
+            }
+
+            // Load all rows and override config values
+            $rows = $this->dbManager->table('config')->get();
+            foreach ($rows as $row) {
+                $this->set($row->path, $row->value);
+            }
+        }
+        catch (\Exception $e) {
+            // Silently fail if DB is not ready
+        }
+    }
+    
+    /**
      * Load extended config from modules, cache and database
      */
     private function loadExtendedConfig()
@@ -124,16 +163,13 @@ class Config
         // Prevent recursion if called during DB initialization
         $this->isExtendedLoaded = true;
 
-        $appDir = $this->config['app']['path'];
-
         // Check Cache first
         if ($this->loadFromCache()) {
             return;
         }
 
         // Scan and load modules config
-        $modulesDir = $appDir . '/app';
-        
+        $modulesDir = $this->config['app']['modules_path'];
         $moduleConfig = $this->configReader->read($modulesDir, 'etc/config.php', false);
         $this->config = array_replace_recursive($this->config, $moduleConfig);
 
@@ -180,41 +216,5 @@ class Config
         } catch (\Exception $e) {
             // Silently fail
         }
-    }
-
-    /**
-     * Load config from config table
-     */
-    private function loadFromDatabase()
-    {
-        try {
-            // Check if table exists
-            if (!$this->dbManager->connection()->getSchemaBuilder()->hasTable('config')) {
-                return;
-            }
-
-            $rows = $this->dbManager->table('config')->get();
-            foreach ($rows as $row) {
-                $this->setConfigValueByPath($row->path, $row->value);
-            }
-        } catch (\Exception $e) {
-            // Silently fail if DB is not ready
-        }
-    }
-
-    /**
-     * Utility to set nested config value by path string (e.g. "section/group/field")
-     */
-    private function setConfigValueByPath($path, $value)
-    {
-        $parts = explode('/', $path);
-        $temp = &$this->config;
-        foreach ($parts as $part) {
-            if (!isset($temp[$part]) || !is_array($temp[$part])) {
-                $temp[$part] = [];
-            }
-            $temp = &$temp[$part];
-        }
-        $temp = $value;
     }
 }
