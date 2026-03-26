@@ -14,6 +14,11 @@ use SoloSearch\Cache\Model\CacheRepository;
 class Layout
 {
     /**
+     * Cache key prefix
+     */
+    public const LAYOUT_FLAT_CACHE_PREFIX = 'layout_flat_';
+
+    /**
      * @var Config
      */
     protected Config $config;
@@ -33,9 +38,6 @@ class Layout
      */
     protected ConfigReader $configReader;
 
-    /** @var array */
-    protected array $handleConfig = [];
-    
     /** @var BlockInterface[] */
     protected array $blocks = [];
 
@@ -56,23 +58,6 @@ class Layout
     }
 
     /**
-     * Builds the block hierarchy for a specific layout handle.
-     * It delegates to configuration preparation and block generation.
-     *
-     * @param string $handle The layout handle to build (e.g., 'feed_index')
-     * @return BlockInterface|null The root block of the layout, or null if no configuration exists
-     */
-    public function build(string $handle = 'default'): ?BlockInterface
-    {
-        $flatConfig = $this->prepareConfiguration($handle);
-        if (empty($flatConfig)) {
-            return null;
-        }
-
-        return $this->generateBlocks($flatConfig);
-    }
-
-    /**
      * Renders a layout handle to HTML.
      * First builds the layout tree and then calls `toHtml()` on the root block.
      *
@@ -86,23 +71,36 @@ class Layout
     }
 
     /**
-     * Retrieves the flattened and merged configuration array for the current handle.
+     * Retrieves the tree structure of the blocks for the current handle.
      *
-     * @return array The layout configuration data
+     * @param string $handle The layout handle requested
+     * @return array The layout tree structure
      */
-    public function getHandleConfig(): array
+    public function getTree(string $handle = 'default'): array
     {
-        return $this->handleConfig;
+        $root = $this->build($handle);
+        if (!$root) {
+            return [];
+        }
+
+        return $this->buildBlockTree($root);
     }
 
     /**
-     * Retrieves all instantiated blocks for the current layout handle.
-     * 
-     * @return BlockInterface[] Array of blocks indexed by their alias
+     * Builds the block hierarchy for a specific layout handle.
+     * It delegates to configuration preparation and block generation.
+     *
+     * @param string $handle The layout handle to build (e.g., 'feed_index')
+     * @return BlockInterface|null The root block of the layout, or null if no configuration exists
      */
-    public function getBlocks(): array
+    protected function build(string $handle = 'default'): ?BlockInterface
     {
-        return $this->blocks;
+        $flatConfig = $this->prepareConfiguration($handle);
+        if (empty($flatConfig)) {
+            return null;
+        }
+
+        return $this->generateBlocks($flatConfig);
     }
 
     /**
@@ -113,8 +111,50 @@ class Layout
      */
     protected function prepareConfiguration(string $handle): array
     {
+        $cacheKey = self::LAYOUT_FLAT_CACHE_PREFIX . $handle;
+        $cachedFlat = $this->loadFromCache($cacheKey);
+        if ($cachedFlat !== null) {
+            return $cachedFlat;
+        }
+
+        // Load layout files
         $layouts = $this->loadLayouts();
         
+        // Merge handles and flatten the configuration
+        $mergedConfig = $this->getMergedHandleConfig($layouts, $handle);
+        if (empty($mergedConfig)) {
+            return [];
+        }
+
+        // Flatten the configuration array, converting nested 'childs' into 'parent' references
+        $flatConfig = $this->flattenConfig($mergedConfig);
+
+        $this->saveToCache($cacheKey, $flatConfig);
+
+        return $flatConfig;
+    }
+
+    /**
+     * Loads layout configurations from all modules' view/layout/*.php files.
+     *
+     * @return array The loaded and merged layout configurations
+     */
+    protected function loadLayouts(): array
+    {
+        $modulesDir = $this->config->get('app/modules_path');
+        return $this->configReader->read($modulesDir, 'view/layout', true);
+    }
+    
+    /**
+     * Merges the components of a specific handle, including the default handle.
+     *
+     * @param array $layouts All available layouts
+     * @param string $handle The requested handle
+     * @return array The merged configuration for the handle
+     */
+    protected function getMergedHandleConfig(array $layouts, string $handle): array
+    {
+        // Merge default handle with current handle
         $defaultConfig = [];
         if ($handle !== 'default' && isset($layouts['default'])) {
             $defaultConfig = $this->mergeLayoutHandles($layouts, 'default');
@@ -131,31 +171,7 @@ class Layout
         }
 
         // Merge the requested handle on top of the default handle
-        $this->handleConfig = array_replace_recursive($defaultConfig, $handleConfig);
-        
-        // Flatten the configuration array, converting nested 'childs' into 'parent' references
-        return $this->flattenConfig($this->handleConfig);
-    }
-
-    /**
-     * Loads layout configurations from all modules' view/layout/*.php files.
-     * Caches the result to avoid parsing the filesystem on every request.
-     *
-     * @return array The loaded and merged layout configurations
-     */
-    protected function loadLayouts(): array
-    {
-        $cachedLayouts = $this->loadFromCache();
-        if ($cachedLayouts !== null) {
-            return $cachedLayouts;
-        }
-
-        $modulesDir = $this->config->get('app/modules_path');
-        $layouts = $this->configReader->read($modulesDir, 'view/layout', true);
-
-        $this->saveToCache($layouts);
-
-        return $layouts;
+        return array_replace_recursive($defaultConfig, $handleConfig);
     }
 
     /**
@@ -281,16 +297,54 @@ class Layout
     }
 
     /**
-     * Load layout from cache
+     * Recursively builds an array representation of a block and its children.
      * 
+     * @param BlockInterface $block
+     * @return array
+     */
+    protected function buildBlockTree(BlockInterface $block): array
+    {
+        $data = method_exists($block, 'getData') ? $block->getData() : [];
+        
+        $node = [
+            'name' => $block->getName(),
+            'class' => get_class($block),
+            'data' => $data,
+        ];
+
+        if (method_exists($block, 'getSortedChilds')) {
+            $childs = $block->getSortedChilds();
+            if (!empty($childs)) {
+                $node['childs'] = [];
+                foreach ($childs as $child) {
+                    $node['childs'][$child->getName()] = $this->buildBlockTree($child);
+                }
+            }
+        } elseif (method_exists($block, 'getChilds')) {
+            $childs = $block->getChilds();
+            if (!empty($childs)) {
+                $node['childs'] = [];
+                foreach ($childs as $alias => $child) {
+                    $node['childs'][$alias] = $this->buildBlockTree($child);
+                }
+            }
+        }
+
+        return $node;
+    }
+
+    /**
+     * Load data from cache
+     * 
+     * @param string $key
      * @return array|null
      */
-    protected function loadFromCache(): ?array
+    protected function loadFromCache(string $key): ?array
     {
         try {
-            $cachedLayouts = $this->cache->get('layout_config');
-            if ($cachedLayouts && is_array($cachedLayouts)) {
-                return $cachedLayouts;
+            $cachedData = $this->cache->get($key);
+            if ($cachedData && is_array($cachedData)) {
+                return $cachedData;
             }
         } catch (\Exception $e) {
             // Silently ignore cache read errors
@@ -300,14 +354,15 @@ class Layout
     }
 
     /**
-     * Save layout to cache
+     * Save data to cache
      * 
-     * @param array $layouts
+     * @param string $key
+     * @param array $data
      */
-    protected function saveToCache(array $layouts): void
+    protected function saveToCache(string $key, array $data): void
     {
         try {
-            $this->cache->set('layout_config', $layouts);
+            $this->cache->set($key, $data);
         } catch (\Exception $e) {
             // Silently ignore cache write errors
         }
