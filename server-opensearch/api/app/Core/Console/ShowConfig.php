@@ -22,8 +22,10 @@ class ShowConfig implements CommandInterface
 
     /**
      * Runs command
+     * 
+     * @param array $argv
      */
-    public function run()
+    public function run(array $argv)
     {
         $data = $this->config->getData();
         echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";

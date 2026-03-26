@@ -44,8 +44,10 @@ class Install implements CommandInterface
 
     /**
      * Runs command
+     * 
+     * @param array $argv
      */
-    public function run()
+    public function run(array $argv)
     {
         // 1. Initial platform setup if needed
         if (!$this->db->getSchema()->hasTable('modules')) {

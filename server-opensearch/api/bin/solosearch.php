@@ -31,7 +31,7 @@ $className = "SoloSearch\\{$group}\\Console\\{$commandName}";
 // Get command class and run
 try {
     $command = $container->get($className);
-    $command->run();
+    $command->run($argv);
 } catch (\DI\NotFoundException $e) {
     echo "Error: Command '{$argv[1]}' not found (Class: {$className}).\n";
     exit(1);

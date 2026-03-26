@@ -22,21 +22,21 @@ class ShowLayout implements CommandInterface
 
     /**
      * Runs command
+     * 
+     * @param array $argv
      */
-    public function run()
+    public function run(array $argv)
     {
-        global $argv;
         $handle = $argv[2] ?? 'default';
 
-        $this->layout->build($handle);
-        $data = $this->layout->getHandleConfig();
+        $data = $this->layout->getTree($handle);
 
         if (empty($data)) {
             echo "No layout configuration found for handle '{$handle}'.\n";
             return;
         }
 
-        echo "Layout configuration for handle '{$handle}':\n";
+        echo "Layout tree for handle '{$handle}':\n";
         echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
     }
 }

@@ -7,7 +7,8 @@ interface CommandInterface
     /**
      * Runs the command
      * 
+     * @param array $argv
      * @return void
      */
-    public function run();
+    public function run(array $argv);
 }
