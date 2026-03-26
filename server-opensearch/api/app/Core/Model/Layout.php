@@ -56,13 +56,33 @@ class Layout
     }
 
     /**
-     * Retrieves all instantiated blocks for the current layout handle.
-     * 
-     * @return BlockInterface[] Array of blocks indexed by their alias
+     * Builds the block hierarchy for a specific layout handle.
+     * It delegates to configuration preparation and block generation.
+     *
+     * @param string $handle The layout handle to build (e.g., 'feed_index')
+     * @return BlockInterface|null The root block of the layout, or null if no configuration exists
      */
-    public function getBlocks(): array
+    public function build(string $handle = 'default'): ?BlockInterface
     {
-        return $this->blocks;
+        $flatConfig = $this->prepareConfiguration($handle);
+        if (empty($flatConfig)) {
+            return null;
+        }
+
+        return $this->generateBlocks($flatConfig);
+    }
+
+    /**
+     * Renders a layout handle to HTML.
+     * First builds the layout tree and then calls `toHtml()` on the root block.
+     *
+     * @param string $handle The layout handle to render
+     * @return string The generated HTML output
+     */
+    public function render(string $handle = 'default'): string
+    {
+        $root = $this->build($handle);
+        return $root ? $root->toHtml() : '';
     }
 
     /**
@@ -76,50 +96,13 @@ class Layout
     }
 
     /**
-     * Builds the block hierarchy for a specific layout handle.
-     * It delegates to configuration preparation and block generation.
-     *
-     * @param string $handle The layout handle to build (e.g., 'feed_index')
-     * @return BlockInterface|null The root block of the layout, or null if no configuration exists
+     * Retrieves all instantiated blocks for the current layout handle.
+     * 
+     * @return BlockInterface[] Array of blocks indexed by their alias
      */
-    public function build(string $handle = 'default'): ?BlockInterface
+    public function getBlocks(): array
     {
-        $flatConfig = $this->prepareConfiguration($handle);
-        
-        if (empty($flatConfig)) {
-            return null;
-        }
-
-        return $this->generateBlocks($flatConfig);
-    }
-
-    /**
-     * Loads layout configurations from all modules' view/layout/*.php files.
-     * Caches the result to avoid parsing the filesystem on every request.
-     *
-     * @return array The loaded and merged layout configurations
-     */
-    protected function loadLayouts(): array
-    {
-        try {
-            $cachedLayouts = $this->cache->get('layout_config');
-            if ($cachedLayouts && is_array($cachedLayouts)) {
-                return $cachedLayouts;
-            }
-        } catch (\Exception $e) {
-            // Silently ignore cache read errors
-        }
-
-        $modulesDir = $this->config->get('app/modules_path');
-        $layouts = $this->configReader->read($modulesDir, 'view/layout', true);
-
-        try {
-            $this->cache->set('layout_config', $layouts);
-        } catch (\Exception $e) {
-            // Silently ignore cache write errors
-        }
-
-        return $layouts;
+        return $this->blocks;
     }
 
     /**
@@ -155,64 +138,24 @@ class Layout
     }
 
     /**
-     * Instantiates all blocks and links them to their parents to form the block tree.
-     * 
-     * @param array $flatConfig The flattened configuration array
-     * @return BlockInterface|null The root block
+     * Loads layout configurations from all modules' view/layout/*.php files.
+     * Caches the result to avoid parsing the filesystem on every request.
+     *
+     * @return array The loaded and merged layout configurations
      */
-    protected function generateBlocks(array $flatConfig): ?BlockInterface
+    protected function loadLayouts(): array
     {
-        $this->blocks = [];
-        $rootBlocks = [];
-        
-        // Instantiate all blocks from the flattened configuration
-        foreach ($flatConfig as $alias => $blockConfig) {
-            $type = $blockConfig['type'] ?? \SoloSearch\Core\Block\BlockList::class;
-            try {
-                $block = $this->container->make($type, [
-                    'name' => $alias,
-                    'data' => $blockConfig
-                ]);
-                $this->blocks[$alias] = $block;
-            } catch (\Exception $e) {
-                error_log("Error creating block {$alias}: " . $e->getMessage());
-            }
+        $cachedLayouts = $this->loadFromCache();
+        if ($cachedLayouts !== null) {
+            return $cachedLayouts;
         }
 
-        // Link blocks to their respective parents
-        foreach ($flatConfig as $alias => $blockConfig) {
-            if (!isset($this->blocks[$alias])) continue;
+        $modulesDir = $this->config->get('app/modules_path');
+        $layouts = $this->configReader->read($modulesDir, 'view/layout', true);
 
-            $block = $this->blocks[$alias];
-            $parentAlias = $blockConfig['parent'] ?? null;
-            $position = (int)($blockConfig['position'] ?? 0);
+        $this->saveToCache($layouts);
 
-            if ($parentAlias && isset($this->blocks[$parentAlias])) {
-                $this->blocks[$parentAlias]->addChild($alias, $block, $position);
-            } elseif (!$parentAlias || $parentAlias === '') {
-                // Blocks without a parent are considered root blocks
-                $rootBlocks[] = $block;
-            }
-        }
-
-        // Return the root block
-        if (count($rootBlocks) === 1) {
-            return $rootBlocks[0];
-        } elseif (count($rootBlocks) === 0) {
-            return null;
-        }
-
-        // If multiple roots, wrap them in a BlockList
-        $wrapper = $this->container->make(\SoloSearch\Core\Block\BlockList::class, [
-            'name' => 'root_wrapper',
-            'data' => []
-        ]);
-        
-        foreach ($rootBlocks as $block) {
-            $wrapper->addChild($block->getName(), $block);
-        }
-
-        return $wrapper;
+        return $layouts;
     }
 
     /**
@@ -277,15 +220,96 @@ class Layout
     }
 
     /**
-     * Renders a layout handle to HTML.
-     * First builds the layout tree and then calls `toHtml()` on the root block.
-     *
-     * @param string $handle The layout handle to render
-     * @return string The generated HTML output
+     * Instantiates all blocks and links them to their parents to form the block tree.
+     * 
+     * @param array $flatConfig The flattened configuration array
+     * @return BlockInterface|null The root block
      */
-    public function render(string $handle = 'default'): string
+    protected function generateBlocks(array $flatConfig): ?BlockInterface
     {
-        $root = $this->build($handle);
-        return $root ? $root->toHtml() : '';
+        $this->blocks = [];
+        $rootBlocks = [];
+        
+        // Instantiate all blocks from the flattened configuration
+        foreach ($flatConfig as $alias => $blockConfig) {
+            $type = $blockConfig['type'] ?? \SoloSearch\Core\Block\BlockList::class;
+            try {
+                $block = $this->container->make($type, [
+                    'name' => $alias,
+                    'data' => $blockConfig
+                ]);
+                $this->blocks[$alias] = $block;
+            } catch (\Exception $e) {
+                error_log("Error creating block {$alias}: " . $e->getMessage());
+            }
+        }
+
+        // Link blocks to their respective parents
+        foreach ($flatConfig as $alias => $blockConfig) {
+            if (!isset($this->blocks[$alias])) continue;
+
+            $block = $this->blocks[$alias];
+            $parentAlias = $blockConfig['parent'] ?? null;
+            $position = (int)($blockConfig['position'] ?? 0);
+
+            if ($parentAlias && isset($this->blocks[$parentAlias])) {
+                $this->blocks[$parentAlias]->addChild($alias, $block, $position);
+            } elseif (!$parentAlias || $parentAlias === '') {
+                // Blocks without a parent are considered root blocks
+                $rootBlocks[] = $block;
+            }
+        }
+
+        // Return the root block
+        if (count($rootBlocks) === 1) {
+            return $rootBlocks[0];
+        } elseif (count($rootBlocks) === 0) {
+            return null;
+        }
+
+        // If multiple roots, wrap them in a BlockList
+        $wrapper = $this->container->make(\SoloSearch\Core\Block\BlockList::class, [
+            'name' => 'root_wrapper',
+            'data' => []
+        ]);
+        
+        foreach ($rootBlocks as $block) {
+            $wrapper->addChild($block->getName(), $block);
+        }
+
+        return $wrapper;
+    }
+
+    /**
+     * Load layout from cache
+     * 
+     * @return array|null
+     */
+    protected function loadFromCache(): ?array
+    {
+        try {
+            $cachedLayouts = $this->cache->get('layout_config');
+            if ($cachedLayouts && is_array($cachedLayouts)) {
+                return $cachedLayouts;
+            }
+        } catch (\Exception $e) {
+            // Silently ignore cache read errors
+        }
+
+        return null;
+    }
+
+    /**
+     * Save layout to cache
+     * 
+     * @param array $layouts
+     */
+    protected function saveToCache(array $layouts): void
+    {
+        try {
+            $this->cache->set('layout_config', $layouts);
+        } catch (\Exception $e) {
+            // Silently ignore cache write errors
+        }
     }
 }
