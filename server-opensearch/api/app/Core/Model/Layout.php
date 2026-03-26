@@ -4,6 +4,7 @@ namespace SoloSearch\Core\Model;
 
 use DI\Container;
 use SoloSearch\Core\Block\BlockInterface;
+use SoloSearch\Cache\Model\CacheRepository;
 
 /**
  * Class Layout
@@ -22,6 +23,11 @@ class Layout
      */
     protected Container $container;
 
+    /**
+     * @var CacheRepository
+     */
+    protected CacheRepository $cache;
+
     /** @var array */
     protected array $handleConfig = [];
     
@@ -33,11 +39,13 @@ class Layout
      *
      * @param Config $config The application configuration object holding layout definitions
      * @param Container $container The dependency injection container for instantiating blocks
+     * @param CacheRepository $cache Repository for caching layout configurations
      */
-    public function __construct(Config $config, Container $container)
+    public function __construct(Config $config, Container $container, CacheRepository $cache)
     {
         $this->config = $config;
         $this->container = $container;
+        $this->cache = $cache;
     }
 
     /**
@@ -79,6 +87,60 @@ class Layout
     }
 
     /**
+     * Loads layout configurations from all modules' view/layout/*.php files.
+     * Caches the result to avoid parsing the filesystem on every request.
+     *
+     * @return array The loaded and merged layout configurations
+     */
+    protected function loadLayouts(): array
+    {
+        try {
+            $cachedLayouts = $this->cache->get('layout_config');
+            if ($cachedLayouts && is_array($cachedLayouts)) {
+                return $cachedLayouts;
+            }
+        } catch (\Exception $e) {
+            // Silently ignore cache read errors
+        }
+
+        $layouts = [];
+        $appDir = $this->config->get('app/path') . '/app';
+
+        if (is_dir($appDir)) {
+            $modules = scandir($appDir);
+            foreach ($modules as $module) {
+                if ($module === '.' || $module === '..') continue;
+
+                $layoutDir = $appDir . '/' . $module . '/view/layout';
+                if (is_dir($layoutDir)) {
+                    $layoutFiles = scandir($layoutDir);
+                    foreach ($layoutFiles as $file) {
+                        if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
+                            $handle = basename($file, '.php');
+                            $layoutConfig = require $layoutDir . '/' . $file;
+                            
+                            if (is_array($layoutConfig)) {
+                                if (!isset($layouts[$handle])) {
+                                    $layouts[$handle] = [];
+                                }
+                                $layouts[$handle] = array_replace_recursive($layouts[$handle], $layoutConfig);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        try {
+            $this->cache->set('layout_config', $layouts);
+        } catch (\Exception $e) {
+            // Silently ignore cache write errors
+        }
+
+        return $layouts;
+    }
+
+    /**
      * Prepares, merges and flattens the layout configuration for the requested handle.
      * 
      * @param string $handle The layout handle requested
@@ -86,7 +148,7 @@ class Layout
      */
     protected function prepareConfiguration(string $handle): array
     {
-        $layouts = $this->config->get('layout');
+        $layouts = $this->loadLayouts();
         
         $defaultConfig = [];
         if ($handle !== 'default' && isset($layouts['default'])) {
